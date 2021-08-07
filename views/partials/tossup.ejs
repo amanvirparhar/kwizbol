@@ -1,0 +1,72 @@
+<div id="answer_status"></div>
+<div class="row">
+	<div class="col col-md-9 col-12">
+		<div class="card mb-3">
+			<div class="card-body">
+				<h6 class="text-muted card-subtitle mb-2">
+					<%= category %> | <%= tourney %> | <%= difficulty %>
+				</h6>
+				<p class="card-text" id="tossup"></p>
+			</div>
+		</div>
+	</div>
+	<div class="col col-md-3 col-12">
+		<div class="card mb-3">
+			<div class="card-body">
+				<h3><strong>Points: </strong>
+					<%= points %>
+				</h3>
+				<div class="form-check">
+					<% if (diff_short=="ms" ) { %>
+						<input checked class="form-check-input" type="radio" name="diff" id="ms">
+						<% } else { %>
+							<input class="form-check-input" type="radio" name="diff" id="ms">
+							<% } %>
+								<label class="form-check-label" for="ms">
+									Middle School
+								</label>
+				</div>
+				<div class="form-check">
+					<% if (diff_short=="hs" ) { %>
+						<input checked class="form-check-input" type="radio" name="diff" id="hs">
+						<% } else { %>
+							<input class="form-check-input" type="radio" name="diff" id="hs">
+							<% } %>
+								<label class="form-check-label" for="hs">
+									High School
+								</label>
+				</div>
+				<div class="form-check">
+					<% if (diff_short=="co" ) { %>
+						<input checked class="form-check-input" type="radio" name="diff" id="co">
+						<% } else { %>
+							<input class="form-check-input" type="radio" name="diff" id="co">
+							<% } %>
+								<label class="form-check-label" for="co">
+									College
+								</label>
+				</div>
+				<div class="form-check">
+					<% if (diff_short=="op" ) { %>
+						<input checked class="form-check-input" type="radio" name="diff" id="op">
+						<% } else { %>
+							<input class="form-check-input" type="radio" name="diff" id="op">
+							<% } %>
+								<label class="form-check-label" for="op">
+									Open
+								</label>
+				</div>
+				<div class="form-check">
+					<% if (diff_short=="all" || diff_short==null) { %>
+						<input checked class="form-check-input" type="radio" name="diff" id="all">
+						<% } else { %>
+							<input class="form-check-input" type="radio" name="diff" id="all">
+							<% } %>
+								<label class="form-check-label" for="all">
+									All
+								</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

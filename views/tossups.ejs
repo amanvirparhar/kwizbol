@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+	<title>kwizbol</title>
+	<link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alata&amp;display=swap">
+	<link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+	<div class="container">
+		<%- include('./partials/navbar.ejs') %>
+		<%- include('./partials/tossup.ejs') %>
+		<%- include('./partials/controls.ejs') %>
+	</div>
+	
+	<script src="/javascripts/bootstrap.min.js"></script>
+	<script src="/javascripts/fuzzyset.js"></script>
+	<script>
+		const params = new URLSearchParams(window.location.search);
+		
+		var tossup = "<%= tossup %>".split(" ");
+		var answer = "<%= answer %>";
+
+		// Sanitize string, removing unnecesary characters sometimes appearing in database entires
+		var cleaned_ans = answer.split(" [");
+		cleaned_ans = cleaned_ans[0].split(" (");
+		cleaned_ans = cleaned_ans[0].split(" &lt;");
+		cleaned_ans = cleaned_ans[0].split(" {");
+		cleaned_ans = cleaned_ans[0].split(" &amp");
+		cleaned_ans = cleaned_ans[0].trim();
+
+		// Create FuzzySet object from cleaned_ans
+		var fuzzy_answer = FuzzySet([cleaned_ans]);
+
+		var is_paused = false;
+		var i = 0;
+
+		var points = parseInt("<%= points %>");
+
+		// Adds one word from question in a span element to the DOM 
+		var printWord = setInterval(() => {
+			if (i >= tossup.length - 1) {
+				clearInterval(printWord);
+			}
+
+			if (!is_paused) {
+				var word = document.createElement("span");
+				word.innerHTML = tossup[i] + " ";
+				document.getElementById("tossup").appendChild(word);
+				i++;
+			}
+		}, 175);
+
+		// Event listener for checking answer when Enter is pressed
+		document.getElementById("answer").addEventListener("keyup", ({ key }) => {
+			if (key == "Enter") {
+				checkAnswer();
+			}
+		});
+
+		// Event for checking if pause button is pressed and pausing questions if so
+		document.getElementById("pause").addEventListener("click", () => {
+			is_paused ^= true;
+
+			if (is_paused) {
+				document.getElementById("pause").innerText = "Resume";
+			} else {
+				document.getElementById("pause").innerText = "Pause";
+			}
+		});
+
+		// Button to facilitate skipping of questions
+		document.getElementById("next").addEventListener("click", () => {
+			window.location.href = "/tossups?" + params;
+		});
+
+		// Adding an event listener to each radio button in order to change URL when any of them is clicked
+		Array.from(document.getElementsByClassName("form-check-input")).forEach(function (element) {
+			element.addEventListener("click", () => {
+				if (params.has("diff")) {
+					params.set("diff", element.id);
+				} else {
+					params.append("diff", element.id);
+				}
+				window.location.href = "/tossups?" + params;
+			});
+		});
+
+		function checkAnswer() {
+			var value = document.getElementById("answer").value.trim();
+			var fuzziness = fuzzy_answer.get(value);
+
+			// Checking if fuzziness is null (happens if value1 is not even close to value2) and setting fuzziness to 0 if so
+			if (fuzziness != null) {
+				fuzziness = fuzzy_answer.get(value)[0][0];
+			} else {
+				fuzziness = 0;
+			}
+
+			// If fuzziness is above 0.75 (from 0 to 1) or if string that is entered is larger than 5 characters and is in the answer string
+			if (fuzziness >= 0.75 || (cleaned_ans.toLowerCase().includes(value.toLowerCase()) && value.length >= 5)) {
+				// Create "correct" alert
+				var alert = document.createElement("div");
+				alert.className = "alert alert-success";
+				alert.setAttribute("role", "alert");
+				alert.innerHTML = "You got it right! The answer was <strong>" + cleaned_ans + "</strong>.";
+				document.getElementById("answer_status").innerHTML = "";
+				document.getElementById("answer_status").appendChild(alert);
+
+				// Add 10 points
+				if (params.has("points")) {
+					params.set("points", points + 10);
+				} else {
+					params.append("points", points + 10);
+				}
+
+				// Change URL in 175 ms
+				setTimeout(() => {
+					window.location.href = "/tossups?" + params;
+				}, 175);
+			} else {
+				// Create "wrong" alert
+				var alert = document.createElement("div");
+				alert.className = "alert alert-danger";
+				alert.setAttribute("role", "alert");
+				alert.innerText = "Sorry, that's incorrect.";
+				document.getElementById("answer_status").innerHTML = "";
+				document.getElementById("answer_status").appendChild(alert);
+
+				// Subtract 5 from points
+				if (params.has("points")) {
+					params.set("points", points - 5);
+				} else {
+					params.append("points", points - 5);
+				}
+			}
+		}
+	</script>
+</body>
+
+</html>
